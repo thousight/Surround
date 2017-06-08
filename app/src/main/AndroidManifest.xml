@@ -26,6 +26,9 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <!--Make this app support s8's 18.5:9 ratio-->
+        <meta-data android:name="android.max_aspect" android:value="2.1" />
+
     </application>
 
 </manifest>
