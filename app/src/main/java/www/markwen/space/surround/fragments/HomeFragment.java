@@ -53,10 +53,13 @@ public class HomeFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Get variables
         activity = (MainActivity)getActivity();
         newSongs = activity.getNewSongs();
-
         inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        // Set toolbar title
+        activity.setTitleText("Home");
     }
 
     @Nullable
@@ -72,7 +75,7 @@ public class HomeFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                ArrayList<Song> newNewSongs = activity.scanSongs();
+                ArrayList<Song> newNewSongs = activity.scanForNewEntries();
                 if (newNewSongs.size() > 0) {
                     Song tempSong;
                     for (int i = 0; i < newNewSongs.size(); i++) {
@@ -82,10 +85,14 @@ public class HomeFragment extends Fragment {
                     }
                     newNewSongs.clear();
                 }
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
 
-
+        ArrayList<Song> allSongs = activity.scanForNewEntries();
+        for (Song song : allSongs) {
+            renderNewSong(song);
+        }
 
         return rootView;
     }

@@ -24,10 +24,17 @@
 
     <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
         <item name="spinBars">true</item>
-        <item name="color">@color/colorAccent</item>
+        <item name="color">@color/colorTextBlack</item>
     </style>
 
     <style name="AppTheme.TitleText">
+        <item name="android:textSize">40sp</item>
+        <item name="android:textColor">@color/colorTextBlack</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+    </style>
+
+    <style name="AppTheme.SubTitleText">
         <item name="android:textSize">25sp</item>
         <item name="android:textColor">@color/colorTextBlack</item>
         <item name="android:paddingLeft">16dp</item>

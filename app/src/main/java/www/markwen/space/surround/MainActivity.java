@@ -5,9 +5,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -17,6 +19,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.SlidingPaneLayout;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -27,17 +30,25 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.mpatric.mp3agic.ID3v2;
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.UnsupportedTagException;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.ExecutionException;
 
 import www.markwen.space.surround.fragments.HomeFragment;
 import www.markwen.space.surround.fragments.LibraryFragment;
@@ -49,9 +60,12 @@ public class MainActivity extends AppCompatActivity
     // View items
     private FrameLayout mainFrame;
     private Toolbar toolbar;
+    private CollapsingToolbarLayout collapsingToolbar;
+    private TextView titleText;
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
     private NavigationView navigationView;
+    private MaterialDialog loadingDialog;
 
     // Fragments
     private FragmentManager fragmentManager;
@@ -68,34 +82,39 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // Start dialog
-        MaterialDialog loadingDialog = new MaterialDialog.Builder(this)
-                .title("Loading songs")
+        loadingDialog = new MaterialDialog.Builder(this)
+                .title("Scanning songs")
                 .content("Please wait...")
                 .progress(true, 0)
                 .cancelable(false)
-                .show();
+                .build();
 
         // Grab view items
         mainFrame = (FrameLayout) findViewById(R.id.main_frame);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+//        titleText = (TextView) findViewById(R.id.toolbar_title);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
         // Set up global views
+        collapsingToolbar.setExpandedTitleColor
+                (ResourcesCompat.getColor(getResources(), R.color.colorTextBlack, null));
+        collapsingToolbar.setCollapsedTitleTextColor
+                (ResourcesCompat.getColor(getResources(), R.color.colorTextBlack, null));
+        collapsingToolbar.setExpandedTitleGravity(Gravity.BOTTOM);
+        toolbar.setTitleTextColor
+                (ResourcesCompat.getColor(getResources(), R.color.colorTextBlack, null));
+        setSupportActionBar(toolbar);
         toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        toolbar.setTitle("Home");
-        toolbar.setTitleTextColor(ResourcesCompat.getColor(getResources(), R.color.colorAccent, null));
-        setSupportActionBar(toolbar);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
         // Get files
         directory = new File(Environment.getExternalStorageDirectory().toString() + "/Music");
-        scanSongs();
-
-        loadingDialog.dismiss();
+//        scanSongs();
 
         // Set up fragment
         homeFragment = new HomeFragment();
@@ -132,14 +151,82 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    public void setTitleText(String titleText) {
+        toolbar.setTitle(titleText);
+//        this.titleText.setText(titleText);
+        collapsingToolbar.setTitle(titleText);
+    }
+
     /**
      * Scan all the songs in the 'Music' folder
-     * @return new found song entries
+     * @return
      */
-    public ArrayList<Song> scanSongs() {
-        ArrayList<Song> newNewSongs = new ArrayList<>();
-        allSongs.clear();
-        MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+    public void scanSongs() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                allSongs.clear();
+                MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+                if (directory.exists()) {
+                    File[] allFiles = directory.listFiles(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return name.endsWith(".mp3") && dir.isFile();
+                        }
+                    });
+
+                    File tempFile;
+                    String tempTitle;
+                    Bitmap tempBitmap = null;
+                    Calendar yesterday = Calendar.getInstance();
+                    yesterday.add(Calendar.DATE, -1);
+                    Date tempFileDate;
+                    byte[] tempByteArray;
+                    Song tempSong;
+                    for (File allFile : allFiles) {
+                        tempFile = allFile;
+                        metadataRetriever.setDataSource(tempFile.getAbsolutePath());
+                        tempTitle = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+//                        tempByteArray = metadataRetriever.getEmbeddedPicture();
+                        tempFileDate = new Date(tempFile.lastModified());
+
+//                        if (tempByteArray != null) {
+//                            tempBitmap = BitmapFactory.decodeByteArray(tempByteArray, 0, tempByteArray.length);
+//                        }
+
+                        if (tempTitle.length() > 0) {
+                            tempSong = new Song(tempTitle,
+                                    metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
+                                    metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
+                                    tempFile.getAbsolutePath(),
+                                    tempFileDate,
+                                    tempBitmap);
+                        } else {
+                            tempSong = new Song(tempFile.getName(),
+                                    metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
+                                    metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
+                                    tempFile.getAbsolutePath(),
+                                    tempFileDate,
+                                    tempBitmap);
+                        }
+
+                        allSongs.add(tempSong);
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Please put your music files into your /Music folder", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    public ArrayList<Song> scanForNewEntries() {
+        // Get date of last week
+        GregorianCalendar dayBeforeThisWeek = new GregorianCalendar();
+        int dayFromMonday = (dayBeforeThisWeek.get(Calendar.DAY_OF_WEEK) + 7 - Calendar.MONDAY) % 7;
+        dayBeforeThisWeek.add(Calendar.DATE, -dayFromMonday-1);
+        Date lastWeek = dayBeforeThisWeek.getTime();
+
+        newSongs.clear();
         if (directory.exists()) {
             File[] allFiles = directory.listFiles(new FilenameFilter() {
                 @Override
@@ -147,56 +234,16 @@ public class MainActivity extends AppCompatActivity
                     return name.endsWith(".mp3");
                 }
             });
-
-            File tempFile;
-            String tempTitle;
-            Bitmap tempBitmap;
-            Calendar yesterday = Calendar.getInstance();
-            yesterday.add(Calendar.DATE, -1);
-            Date tempFileDate, oneDayBefore = yesterday.getTime();
-            byte[] tempByteArray;
-            Song tempSong;
-            for (File allFile : allFiles) {
-                tempFile = allFile;
-                metadataRetriever.setDataSource(tempFile.getAbsolutePath());
-                tempTitle = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                tempByteArray = metadataRetriever.getEmbeddedPicture();
-                tempFileDate = new Date(tempFile.lastModified());
-
-                if (tempByteArray != null) {
-                    tempBitmap = BitmapFactory.decodeByteArray(tempByteArray, 0, tempByteArray.length);
-                } else {
-                    tempBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.web_hi_res_512);
+            Date tempDate;
+            for (File file : allFiles) {
+                tempDate = new Date(file.lastModified());
+                if (tempDate.compareTo(lastWeek) > 0) {
+                    newSongs.add(new Song(file));
                 }
-
-                if (tempTitle.length() > 0) {
-                    tempSong = new Song(tempTitle,
-                            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
-                            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
-                            tempFile.getAbsolutePath(),
-                            tempFileDate,
-                            tempBitmap);
-                } else {
-                    tempSong = new Song(tempFile.getName(),
-                            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
-                            metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
-                            tempFile.getAbsolutePath(),
-                            tempFileDate,
-                            tempBitmap);
-                }
-
-                if (!tempFileDate.before(oneDayBefore) && !newSongs.contains(tempSong)) {
-                    newSongs.add(tempSong);
-                    newNewSongs.add(tempSong);
-                }
-
-                allSongs.add(tempSong);
             }
-        } else {
-            Toast.makeText(this, "Please put your music files into your /Music folder", Toast.LENGTH_LONG).show();
         }
 
-        return newNewSongs;
+        return newSongs;
     }
 
     /**

@@ -1,7 +1,10 @@
 package www.markwen.space.surround.models;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -21,6 +24,23 @@ public class Song {
         this.path = path;
         this.dateModified = dateModified;
         this.albumArt = albumArt;
+    }
+
+    public Song(File file) {
+        MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
+        metadataRetriever.setDataSource(file.getAbsolutePath());
+        title = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        if (title == null || title.length() < 1) {
+            title = file.getName();
+        }
+        artist = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        album = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+        path = file.getName();
+        dateModified = new Date(file.lastModified());
+        byte[] tempByteArray = metadataRetriever.getEmbeddedPicture();
+        if (tempByteArray != null) {
+            albumArt = BitmapFactory.decodeByteArray(tempByteArray, 0, tempByteArray.length);
+        }
     }
 
     public String getTitle() {
