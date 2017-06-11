@@ -16,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:titleEnabled="true"
+            app:expandedTitleTextAppearance="@style/AppTheme.TitleText"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:contentScrim="@color/colorPrimary"
             android:fitsSystemWindows="true">

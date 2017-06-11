@@ -2,12 +2,16 @@
 <android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="300dp"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp">
 
     <RelativeLayout
+        android:id="@+id/new_song_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="6dp">
+        android:paddingBottom="6dp"
+        android:clickable="true"
+        android:background="?android:selectableItemBackground">
 
         <ImageView
             android:id="@+id/new_song_image"
@@ -28,8 +32,7 @@
             android:maxLines="1"
             android:padding="12dp"
             android:text="被伤过的心还可以爱谁"
-            android:textSize="20sp"
-            android:layout_marginTop="12dp"/>
+            android:textSize="20sp"/>
 
         <TextView
             android:id="@+id/new_song_artist"
@@ -38,7 +41,9 @@
             android:layout_below="@id/new_song_title"
             android:ellipsize="end"
             android:maxLines="1"
-            android:padding="12dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="6dp"
             android:text="六哲"
             android:textSize="16sp" />
 
@@ -49,22 +54,9 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:layout_margin="12dp"
-            android:background="@color/transparent"
+            android:background="?android:selectableItemBackground"
             android:src="@drawable/ic_options"
             android:tint="#FFFFFF" />
-
-        <ImageButton
-            android:id="@+id/new_song_play_button"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="268dp"
-            android:layout_marginRight="12dp"
-            android:layout_marginLeft="12dp"
-            android:background="@color/transparent"
-            android:padding="0dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/splash_icon" />
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>

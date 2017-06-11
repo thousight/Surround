@@ -3,9 +3,7 @@ package www.markwen.space.surround.fragments;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SlidingPaneLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
@@ -17,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -41,7 +40,8 @@ public class HomeFragment extends Fragment {
     private CardView tempNewSongCard;
     private ImageView tempNewSongAlbumArt;
     private TextView tempNewSongTitle, tempNewSongArtist;
-    private ImageButton tempNewSongOption, tempNewSongPlayButton;
+    private ImageButton tempNewSongOption;
+    private RelativeLayout tempNewSongPlayBackground;
 
     // Data
     private ArrayList<Song> newSongs = new ArrayList<>();
@@ -80,8 +80,10 @@ public class HomeFragment extends Fragment {
                     Song tempSong;
                     for (int i = 0; i < newNewSongs.size(); i++) {
                         tempSong = newNewSongs.get(i);
-                        renderNewSong(tempSong);
-                        newNewSongs.add(tempSong);
+                        if (!newSongs.contains(tempSong)) {
+                            newSongs.add(tempSong);
+                            renderNewSong(newNewSongs.get(i));
+                        }
                     }
                     newNewSongs.clear();
                 }
@@ -89,8 +91,8 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        ArrayList<Song> allSongs = activity.scanForNewEntries();
-        for (Song song : allSongs) {
+        newSongs = activity.scanForNewEntries();
+        for (Song song : newSongs) {
             renderNewSong(song);
         }
 
@@ -108,7 +110,7 @@ public class HomeFragment extends Fragment {
         tempNewSongTitle = (TextView)tempNewSongCard.findViewById(R.id.new_song_title);
         tempNewSongArtist = (TextView)tempNewSongCard.findViewById(R.id.new_song_artist);
         tempNewSongOption = (ImageButton)tempNewSongCard.findViewById(R.id.new_song_options);
-        tempNewSongPlayButton = (ImageButton)tempNewSongCard.findViewById(R.id.new_song_play_button);
+        tempNewSongPlayBackground = (RelativeLayout)tempNewSongCard.findViewById(R.id.new_song_card);
 
         // Set items
         if (song.getAlbumArt() != null) {
@@ -139,7 +141,7 @@ public class HomeFragment extends Fragment {
                         });
             }
         });
-        tempNewSongPlayButton.setOnClickListener(new View.OnClickListener() {
+        tempNewSongPlayBackground.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
