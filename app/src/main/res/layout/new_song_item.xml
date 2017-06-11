@@ -32,6 +32,7 @@
             android:maxLines="1"
             android:padding="12dp"
             android:text="被伤过的心还可以爱谁"
+            android:textColor="@color/colorTextBlack"
             android:textSize="20sp"/>
 
         <TextView
@@ -45,6 +46,7 @@
             android:paddingRight="12dp"
             android:paddingBottom="6dp"
             android:text="六哲"
+            android:textColor="@color/colorTextBlack"
             android:textSize="16sp" />
 
         <ImageButton

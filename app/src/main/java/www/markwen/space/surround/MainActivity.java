@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity
     private ActionBarDrawerToggle toggle;
     private NavigationView navigationView;
     private MaterialDialog loadingDialog;
+    private TabLayout libraryTabLayout;
 
     // Fragments
     private FragmentManager fragmentManager;
@@ -96,6 +98,7 @@ public class MainActivity extends AppCompatActivity
 //        titleText = (TextView) findViewById(R.id.toolbar_title);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
+        libraryTabLayout = (TabLayout) findViewById(R.id.library_tab);
 
         // Set up global views
         collapsingToolbar.setExpandedTitleColor
@@ -273,5 +276,11 @@ public class MainActivity extends AppCompatActivity
         return newSongs;
     }
 
-
+    /**
+     * Get libraryTabLayout
+     * @return libraryTabLayout
+     */
+    public TabLayout getLibraryTabLayout() {
+        return libraryTabLayout;
+    }
 }

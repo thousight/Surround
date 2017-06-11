@@ -60,6 +60,9 @@ public class HomeFragment extends Fragment {
 
         // Set toolbar title
         activity.setTitleText("Home");
+
+        // Hide libraryTabLayout
+        activity.getLibraryTabLayout().setVisibility(View.GONE);
     }
 
     @Nullable
